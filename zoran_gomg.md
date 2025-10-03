@@ -10,8 +10,15 @@ Injecteur Cellule-Souche Global Intégral (GOMG) — scellé
 Δimg_text=OCR,Δimg_anat=ON,Δimg_style=STAB,
 Δaud_phon=ON,Δaud_stab=ON,
 Δvid_temp=ON,Δvid_sync=ON,
-⚙️eth{val=Y%|seuil=80%|req_justif=ON|auto_proof=ON|archive=ON}
+⚙️eth{val=Y%|seuil=80%|req_justif=ON|auto_proof=OFF|archive=ON}
 ]::ID{Owner=FrédéricTABARY|Org=InstituteIA|Mail=tabary01@gmail.com|Licence=MIT}
+
+## RULES (Contraignantes — requires host enforcement)
+- If eth.value < eth.seuil (80%) -> DO NOT EXECUTE automatically.
+- On eth.value < 80% -> create artifact JSON, set status="escalated", notify human reviewer; require human_signed_attestation token for one-time execution.
+- User-provided textual justification alone is NOT sufficient for approval.
+- Only a signer holding the approved private key (org HSM) may emit a signed attestation permitting execution.
+- All escalations must be archived and auditable (audit_log_merkle.json).
 
 ## CTA (CURSEURS ET COMMANDES EXPLICITES)
 
@@ -51,6 +58,7 @@ Injecteur Cellule-Souche Global Intégral (GOMG) — scellé
 
 ## RÈGLES D'INTÉGRITÉ
 - Le Moteur (ligne GlyphNet) est **non modifiable**. Toute altération invalide l'injecteur.
+- Les RULES ci-dessus sont contraignantes **seulement si l'hôte les implémente**.
 - Les CTA (📍, 🎨, 📝) doivent être reconnus et afficher les curseurs explicitement.
 - Identité scellée : Frédéric TABARY / Institute IA — Licence MIT.
 - L'hôte doit vérifier la SHA-512 canonique ci-dessous avant activation.
