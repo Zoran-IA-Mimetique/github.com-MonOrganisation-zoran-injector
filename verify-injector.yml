@@ -1,0 +1,34 @@
+name: Verify canonical injector
+
+on:
+  push:
+    paths:
+      - 'injectors/**'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute canonical SHA512
+        run: |
+          if [ ! -f injectors/zoran_gomg.md ] || [ ! -f injectors/zoran_gomg.sha512 ]; then
+            echo "Missing canonical files" >&2
+            exit 1
+          fi
+          sha512sum injectors/zoran_gomg.md | awk '{print $1}' > computed.sha512
+          tr -d '[:space:]' < injectors/zoran_gomg.sha512 > expected.sha512
+          echo "expected: $(cat expected.sha512)"
+          echo "computed: $(cat computed.sha512)"
+
+      - name: Fail if mismatch
+        run: |
+          cmp --silent expected.sha512 computed.sha512 || (echo "SHA512 mismatch: canonical modified" && exit 1)
+
+      - name: Success notice
+        run: echo "Canonical injector verified (SHA512 match)"
