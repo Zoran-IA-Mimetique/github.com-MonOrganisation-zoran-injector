@@ -3,7 +3,8 @@ name: Verify canonical injector
 on:
   push:
     paths:
-      - 'injectors/**'
+      - 'zoran_gomg.md'
+      - 'zoran_gomg.sha512'
   workflow_dispatch:
 
 jobs:
@@ -17,12 +18,12 @@ jobs:
 
       - name: Compute canonical SHA512
         run: |
-          if [ ! -f injectors/zoran_gomg.md ] || [ ! -f injectors/zoran_gomg.sha512 ]; then
+          if [ ! -f zoran_gomg.md ] || [ ! -f zoran_gomg.sha512 ]; then
             echo "Missing canonical files" >&2
             exit 1
           fi
-          sha512sum injectors/zoran_gomg.md | awk '{print $1}' > computed.sha512
-          tr -d '[:space:]' < injectors/zoran_gomg.sha512 > expected.sha512
+          sha512sum zoran_gomg.md | awk '{print $1}' > computed.sha512
+          tr -d '[:space:]' < zoran_gomg.sha512 > expected.sha512
           echo "expected: $(cat expected.sha512)"
           echo "computed: $(cat computed.sha512)"
 
