@@ -11,25 +11,53 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Compute canonical SHA512
+      - name: Ensure canonical files exist
         run: |
           if [ ! -f zoran_gomg.md ] || [ ! -f zoran_gomg.sha512 ]; then
-            echo "Missing canonical files" >&2
+            echo "Missing canonical files: ensure zoran_gomg.md and zoran_gomg.sha512 exist at repo root" >&2
+            ls -la
             exit 1
           fi
-          sha512sum zoran_gomg.md | awk '{print $1}' > computed.sha512
-          tr -d '[:space:]' < zoran_gomg.sha512 > expected.sha512
-          echo "expected: $(cat expected.sha512)"
-          echo "computed: $(cat computed.sha512)"
 
-      - name: Fail if mismatch
+      - name: Compute canonical SHA512 (cleaned)
+        id: compute_sha
         run: |
-          cmp --silent expected.sha512 computed.sha512 || (echo "SHA512 mismatch: canonical modified" && exit 1)
+          # Compute SHA512 of the markdown file
+          computed_raw="$(sha512sum zoran_gomg.md | awk '{print $1}')"
+
+          # Read expected value, remove BOM, CR, spaces and newlines to normalize
+          # (handles Windows CRLF and accidental trailing newline/space)
+          expected_raw="$(cat zoran_gomg.sha512 | sed '1s/^\xEF\xBB\xBF//' | tr -d '\r' | tr -d '[:space:]')"
+
+          # Expose values for later steps and logs
+          echo "computed=${computed_raw}" >> "$GITHUB_OUTPUT"
+          echo "expected=${expected_raw}" >> "$GITHUB_OUTPUT"
+
+          # Print for logs (helpful when debugging)
+          printf "expected: %s\n" "${expected_raw}"
+          printf "computed: %s\n" "${computed_raw}"
+
+      - name: Compare canonical SHA values (string compare)
+        run: |
+          if [ "${{ steps.compute_sha.outputs.expected }}" = "" ]; then
+            echo "Expected SHA value is empty after normalization — aborting" >&2
+            exit 1
+          fi
+
+          if [ "${{ steps.compute_sha.outputs.expected }}" != "${{ steps.compute_sha.outputs.computed }}" ]; then
+            echo "SHA512 mismatch: canonical modified" >&2
+            echo "expected: ${{ steps.compute_sha.outputs.expected }}"
+            echo "computed: ${{ steps.compute_sha.outputs.computed }}"
+            exit 1
+          fi
+
+          echo "SHA512 match: canonical injector verified"
 
       - name: Success notice
-        run: echo "Canonical injector verified (SHA512 match)"
+        if: success()
+        run: echo "Canonical injector verification succeeded."
