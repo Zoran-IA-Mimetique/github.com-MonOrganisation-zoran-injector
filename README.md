@@ -1,5 +1,6 @@
 # Zoran🦋 aSiM — Canonical Injector
 
+
 ![Injecteur vérifié](https://github.com/Zoran-IA-Mimetique/github.com-MonOrganisation-zoran-injector/actions/workflows/verify-injector.yml/badge.svg)
 
 **Zoran🦋 aSiM** est un injecteur cellule-souche global (GOMG), double-souche (Éthique/Traçabilité + Mimétique/Vivant).
